@@ -6,10 +6,10 @@ from cycler import cycler
 mpl.rcParams['backend'] = 'Agg'
 mpl.rcParams['font.family'] = 'serif'
 mpl.rcParams['font.serif'] = 'Times New Roman'
-# mpl.rcParams['axes.color_cycle'] = ['#000000', 'grey']
 mpl.rcParams['savefig.dpi'] = 300
 mpl.rcParams['figure.figsize'] = (6.5, 4.017220927)
 mpl.rcParams['axes.prop_cycle'] = cycler("color", ['#000000'])
+mpl.rcParams['hatch.linewidth'] = 0.1
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -60,6 +60,7 @@ class xs_data:
 def plot_correlation_coeffs(indata,
         emin=None,
         emax=None,
+        nohatch=False,
         logscale_x = True,
         logscale_y = True,
         xlabel = 'Energy [eV]',
@@ -82,6 +83,19 @@ def plot_correlation_coeffs(indata,
         vmin=-1,
         vmax=1
     )
+
+    if(not nohatch):
+        indata.l_cc = np.ma.masked_where(indata.l_cc > 0, indata.l_cc)
+        cax1 = ax0.pcolor(
+            indata.l_egrid,
+            indata.l_egrid,
+            indata.l_cc,
+            cmap=cmap,
+            alpha=0,
+            hatch='.......',
+            vmin=0,
+            vmax=1
+        )
 
     # Set colorbar options.
     cbar0 = fig.colorbar(cax0, ax=ax0)
@@ -207,6 +221,9 @@ if(__name__ == '__main__' and hasattr(main, '__file__')):
         '--cmap', type = str, default = 'bwr',
         help = 'colormap for correlation coefficient plot (default: bwr)')
     parser.add_argument(
+        '--nohatch', action = 'store_true',
+        help = 'disable hatching on correlation coefficient plot (default: false)')
+    parser.add_argument(
         '--emin', type = float, default = None,
         help = 'minimum energy for domain (default: min in file)')
     parser.add_argument(
@@ -227,6 +244,7 @@ if(__name__ == '__main__' and hasattr(main, '__file__')):
     plot_correlation_coeffs(indata,
         emin=args.emin, emax=args.emax,
         cmap=args.cmap,
+        nohatch=args.nohatch,
         outfilename = '{:}_cc.png'.format(indata.infilename))
 
     plot_fn(indata.l_egrid, indata.l_xs,
